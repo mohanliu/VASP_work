@@ -156,14 +156,17 @@ class KPOINTS:
         self.kps = [v*nmk/omk for v in ori_kp]
         self.write_output()
     
-def main():
+def main(kppra, ifsurf, diff=0):
     kc = KPOINTS()
-    kc.kppra = 4000
+    kc.kppra = kppra
+    kc.diff = diff
     if kc.diff == 0:
         kc.get_kpoints()
-        kc.modification_to_surface()
+        if ifsurf:
+            kc.modification_to_surface()
         kc.write_output()
     else:
         kc.delta_kpoints()
-        kc.modification_to_surface()
+        if ifsurf:
+            kc.modification_to_surface()
         kc.write_output()

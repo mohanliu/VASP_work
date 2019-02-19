@@ -201,10 +201,12 @@ class DFTjob():
         Set up KPOINTS file
         """
         import setkp_surf as kp
+
         kppra = kwargs.get('kppra', 4000)
         ifsurf = kwargs.get('ifsurf', False)
-        k = kp.main(kppra, ifsurf)
+        user_kps = kwargs.get('user_kps', [])
 
+        kp.main(kppra=kppra, ifsurf=ifsurf, user_kps=user_kps)
 
     def submitjob(self):
         """
@@ -256,6 +258,7 @@ if __name__ == "__main__":
 
         # Kwargs for this DFT task
         kwargs = {'kppra': 4000,  # KPPRA for KPOINTS
+                  'user_kps': [], # User defined KPONINTS
                   'ifsurf': True, # modify KPOINTS if it is a surface slab
                   'nodes': 2,     # Number of nodes per job
                   'ntasks': 128,  # Number of tasks per job (64 cpus per node)

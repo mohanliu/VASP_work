@@ -57,16 +57,23 @@ class KPOINTS:
 
         self.kps = [0,0,0] # Initial k-points 
 
-    def write_output(self):
+    def write_output(self, user_kps=[]):
         """
         KPOINTS file written format
+        Input:
+            :: user_kps :: list
         """
-        if min(self.kps) > 0:
+        if user_kps == []:
+            kpoints = self.kps
+        else:
+            kpoints = user_kps
+            
+        if min(kpoints) > 0:
             fw = open('KPOINTS','w')
             fw.write('KPOINTS\n') 
             fw.write('0\n') 
             fw.write('Gamma\n')
-            fw.write('%d %d %d\n' %tuple(self.kps))
+            fw.write('%d %d %d\n' %tuple(kpoints))
             fw.write('0 0 0\n')
             fw.close()
         else:
@@ -156,17 +163,19 @@ class KPOINTS:
         self.kps = [v*nmk/omk for v in ori_kp]
         self.write_output()
     
-def main(kppra, ifsurf, diff=0):
+def main(kppra, ifsurf, user_kps=[], diff=0):
     kc = KPOINTS()
     kc.kppra = kppra
     kc.diff = diff
+
     if kc.diff == 0:
         kc.get_kpoints()
         if ifsurf:
             kc.modification_to_surface()
-        kc.write_output()
+        kc.write_output(user_kps)
+
     else:
         kc.delta_kpoints()
         if ifsurf:
             kc.modification_to_surface()
-        kc.write_output()
+        kc.write_output(user_kps)

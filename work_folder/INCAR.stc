@@ -12,7 +12,7 @@
   NELM = 150
   NELMIN = 5
   ALGO = {algo}
-  ENCUT = 400
+  ENCUT = {encut}
   EDIFF = 1E-7
 
 #= Write flags =#
@@ -25,7 +25,7 @@
 
 #= Parallelization =#
   LPLANE = .TRUE.
-  NPAR = 2
-  KPAR = 8
+  NPAR = {npar}
+  KPAR = {kpar}
 
-  GGA = RP
+  GGA = {gga}

@@ -7,12 +7,14 @@ import subprocess
 import glob
 import yaml
 
+USER_name = 'mervyn' 
+
 ## Absolute path of your pot_dict.yml file
-with open('/global/homes/m/mervyn/pot_dict.yml', 'r') as f:
+with open('/global/homes/'+USER_name[0]+'/'+USER_name+'/pot_dict.yml', 'r') as f:
     potdict = yaml.load(f)
 
 ## Absolute path of your POTCARs folder    
-loc_pbe = '/global/homes/m/mervyn/pot_pbe'
+loc_pbe = '/global/homes/'+USER_name[0]+'/'+USER_name+'/pot_pbe'
 
 class DFTjob():
     """
@@ -246,7 +248,7 @@ class DFTjob():
 
 if __name__ == "__main__":
     poscars = glob.glob('poscars/*')
-    os.system('squeue -u mervyn > current_running')
+    os.system('squeue -u ' + USER_name + ' > current_running')
     
     for p in poscars:
         # Create DFT task object

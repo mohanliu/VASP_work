@@ -7,26 +7,17 @@ import subprocess
 import glob
 import yaml
 
+## Absolute path of your pot_dict.yml file
 with open('/global/homes/m/mervyn/pot_dict.yml', 'r') as f:
     potdict = yaml.load(f)
 
-""" 
-This script is for KNL nodes VASP calculations
-
-To modify according to different cluster
-1. loc_in: global potcar locations
-2. setkp_surf.py: main() function to create KPOINTS accordingly
-3. auto.q format
-4. INCAR.rlx and INCAR.stc setups
-5. submit() function
-6. check_converge.sh: change jobid format and check queue command
-
-"""
-
-loc_in = '/global/homes/m/mervyn/my_new_potcars'
+## Absolute path of your POTCARs folder    
 loc_pbe = '/global/homes/m/mervyn/pot_pbe'
 
 class DFTjob():
+    """
+    Main class to create a DFT job
+    """
     def __init__(self, poscar, path='.', conf_lst=None, submit=False):
         if conf_lst == None:
             self.conf_lst = [ 'rlx', 'rlx2', 'stc' ]
@@ -43,19 +34,22 @@ class DFTjob():
             os.mkdir(self.path)
             shutil.copyfile(poscar, os.path.join(self.path, 'POSCAR')) 
 
-    def setup(self):
+    def setup(self, **kwargs):
+        """
+        Set up jobs according to the calculation state
+        """
         flag, conf = self.check_conf()
         cp = os.path.join(self.path, conf)
         
         print "Task: ", cp
         if flag == 0:
             print "    setting up jobs"
-            self.create(conf)
+            self.create(conf, **kwargs)
         elif flag == 1:
             print "    currently running"
         elif flag == 2:
             print "    Calculation is not converged"
-            self.restart(conf)
+            self.restart(conf, **kwargs)
         elif flag == 3:
             print "    Converged"
         elif flag == 4:
@@ -103,7 +97,11 @@ class DFTjob():
         return 3, c
 
 
-    def create(self, conf, algo='Fast'):
+    def create(self, conf, algo='Fast', **kwargs):
+        """
+        Create input files for a VASP calculation
+        Note: Create a Job using ALGO=Fast!
+        """
         cp = os.path.join(self.path, conf) # Conf path
 
         if not os.path.exists(cp):
@@ -138,7 +136,7 @@ class DFTjob():
         self.set_potcar('POSCAR', 'POTCAR')
 
         # KPOINTS setup
-        self.set_kpoints()
+        self.set_kpoints(**kwargs)
 
         # INCAR setup
         if 'rlx' in conf:
@@ -148,7 +146,12 @@ class DFTjob():
             with open(os.path.join(self.global_path, 'INCAR.stc'), 'r') as f:
                 incar_tmp = f.read()
 
-        incar = incar_tmp.format(algo=algo)
+        npar = kwargs.get('npar', 2)
+        kpar = kwargs.get('kpar', 8)
+        gga = kwargs.get('gga', 'PE')
+        encut = kwargs.get('encut', 400)
+        incar = incar_tmp.format(algo=algo, npar=npar, kpar=kpar,
+                                 gga=gga, encut=encut)
 
         with open('INCAR', 'w') as f:
             f.write(incar)
@@ -158,16 +161,18 @@ class DFTjob():
         with open(os.path.join(self.global_path, 'auto.q'), 'r') as f:
             text = f.read()
 
+        queuetype = kwargs.get('queuetype', 'regular')
+        nodes = kwargs.get('nodes', 2)
+        ntasks = kwargs.get('ntasks', 128)
         if 'rlx' in conf:
-            qfile = text.format(nodes='2', 
-                                ntasks='128',
-                                queuetype='regular', 
-                                walltime='2:00:00')
-        if 'stc' in conf:
-            qfile = text.format(nodes='2', 
-                                ntasks='128',
-                                queuetype='regular', 
-                                walltime='0:30:00')
+            walltime = kwargs.get('walltime', '2:00:00')
+        elif 'stc' in conf:
+            walltime = kwargs.get('walltime', '0:30:00')
+
+        qfile = text.format(nodes=nodes, 
+                            ntasks=ntasks,
+                            queuetype=queuetype,
+                            walltime=walltime)
 
         with open('auto.q', 'w') as f:
             f.write(qfile)
@@ -179,20 +184,30 @@ class DFTjob():
         os.chdir(self.global_path)
 
     def set_potcar(self, poscar_path, potcar_path):
+        """
+        Set up POTCAR file
+        """
         with open(poscar_path, 'r') as f:
             atm_pos = f.readlines()[5].strip().split()
 
-        #pot_singles = [ os.path.join(loc_in, 'POTCAR_'+v) for v in atm_pos ]
         pot_singles = [ os.path.join(loc_pbe, potdict[v], 'POTCAR') for v in atm_pos ]
         cmd = 'cat '+' '.join(pot_singles)+' > '+os.path.join(potcar_path)
         os.system(cmd)
 
-    def set_kpoints(self ):
+    def set_kpoints(self, **kwargs):
+        """ 
+        Set up KPOINTS file
+        """
         import setkp_surf as kp
-        k = kp.main()
+        kppra = kwargs.get('kppra', 4000)
+        ifsurf = kwargs.get('ifsurf', False)
+        k = kp.main(kppra, ifsurf)
 
 
     def submitjob(self):
+        """
+        Submit jobs (according to current NERSC job scheduling system)
+        """
         os.system('sbatch auto.q > jobid')
         #os.system('tail -1 jobid')
 
@@ -203,7 +218,7 @@ class DFTjob():
         print "Not Implemented yet"
         return
 
-    def restart(self, conf):
+    def restart(self, conf, **kwargs):
         """
         Restart current calculation
         """
@@ -217,8 +232,6 @@ class DFTjob():
 
         os.rename(cp, cp_bk) # Rename the conf_files
         self.create(conf, algo='Normal') # Recreate the calculation
-
-
 
         # Remove the future calculations
         i = self.conf_lst.index(conf)
@@ -236,9 +249,23 @@ if __name__ == "__main__":
     os.system('squeue -u mervyn > current_running')
     
     for p in poscars:
-        d = DFTjob(p)
-        d.submit = True
-        d.setup()
+        # Create DFT task object
+        d = DFTjob(p, conf_lst=['rlx', 'rlx2', 'stc'])
 
+        # Kwargs for this DFT task
+        kwargs = {'kppra': 4000,  # KPPRA for KPOINTS
+                  'ifsurf': True, # modify KPOINTS if it is a surface slab
+                  'nodes': 2,     # Number of nodes per job
+                  'ntasks': 128,  # Number of tasks per job (64 cpus per node)
+                  'queuetype': 'regular', # queue type (regular, debug, etc)
+                  'npar': 2,      # NPAR in INCAR
+                  'kpar': 8,      # KPAR in INCAR
+                  'encut': 400,   # ENCUT in INCAR
+                  'gga': 'PE'     # GGA in INCAR
+        }
+
+        # Whether or not to submit the job right away
         #d.submit = True
-        #d.create(d.conf)
+
+        # Create input files 
+        d.setup(**kwargs)

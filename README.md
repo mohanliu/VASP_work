@@ -2,7 +2,7 @@
 
 ### copy files in **'work_folder/'** to a working directory
 - Put POSCAR files into **'poscars/'** folder
-- Setup POTCAR repository
+- Set up POTCAR repository
   - Download POTCAR files and save to **'pot_pbe/'** in your home directory. (**pot_dict.yml** can be created in **potcar_folder/potcars_list/** by typing `python pot_python_list.py`.) 
   - Copy **pot_dict.yml** from **potcar_folder/** to your home directory as well. 
   - Change absolute path of your **pot_dict.yml** in **job_control.py** file (line 10).

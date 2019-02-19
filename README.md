@@ -16,4 +16,4 @@
 - Set up jobs by typing `python job_control.py`
 
 
-#### *Note: All python scripts here a written using python 2.7*  
+##### *Note: All python scripts here a written using python 2.7*  

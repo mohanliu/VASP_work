@@ -7,14 +7,16 @@ import subprocess
 import glob
 import yaml
 
-USER_name = 'mervyn' 
+BASE_dir = '/home'
+USER_name = 'mlc152' 
+personal_alloc = 'p30072'
 
 ## Absolute path of your pot_dict.yml file
-with open('/global/homes/'+USER_name[0]+'/'+USER_name+'/pot_dict.yml', 'r') as f:
+with open(BASE_dir+'/'+USER_name+'/pot_dict.yml', 'r') as f:
     potdict = yaml.load(f)
 
 ## Absolute path of your POTCARs folder    
-loc_pbe = '/global/homes/'+USER_name[0]+'/'+USER_name+'/pot_pbe'
+loc_pbe = BASE_dir+'/'+USER_name+'/pot_pbe'
 
 class DFTjob():
     """
@@ -152,7 +154,8 @@ class DFTjob():
         kpar = kwargs.get('kpar', 8)
         gga = kwargs.get('gga', 'PE')
         encut = kwargs.get('encut', 400)
-        incar = incar_tmp.format(algo=algo, npar=npar, kpar=kpar,
+        isif = kwargs.get('isif', 3)
+        incar = incar_tmp.format(algo=algo, npar=npar, kpar=kpar, isif=isif,
                                  gga=gga, encut=encut)
 
         with open('INCAR', 'w') as f:
@@ -163,9 +166,10 @@ class DFTjob():
         with open(os.path.join(self.global_path, 'auto.q'), 'r') as f:
             text = f.read()
 
-        queuetype = kwargs.get('queuetype', 'regular')
+        queuetype = kwargs.get('queuetype', 'normal')
         nodes = kwargs.get('nodes', 2)
         ntasks = kwargs.get('ntasks', 128)
+        key = kwargs.get('key', personal_alloc)
         if 'rlx' in conf:
             walltime = kwargs.get('walltime', '2:00:00')
         elif 'stc' in conf:
@@ -174,6 +178,7 @@ class DFTjob():
         qfile = text.format(nodes=nodes, 
                             ntasks=ntasks,
                             queuetype=queuetype,
+                            key=key,
                             walltime=walltime)
 
         with open('auto.q', 'w') as f:
@@ -257,15 +262,17 @@ if __name__ == "__main__":
         d = DFTjob(p, conf_lst=['rlx', 'rlx2', 'stc'])
 
         # Kwargs for this DFT task
-        kwargs = {'kppra': 4000,  # KPPRA for KPOINTS
+        kwargs = {'kppra': 8000,  # KPPRA for KPOINTS
                   'user_kps': [], # User defined KPONINTS
-                  'ifsurf': True, # modify KPOINTS if it is a surface slab
-                  'nodes': 2,     # Number of nodes per job
-                  'ntasks': 128,  # Number of tasks per job (64 cpus per node)
-                  'queuetype': 'regular', # queue type (regular, debug, etc)
-                  'npar': 2,      # NPAR in INCAR
-                  'kpar': 8,      # KPAR in INCAR
+                  'ifsurf': False, # modify KPOINTS if it is a surface slab
+                  'nodes': 1,     # Number of nodes per job
+                  'ntasks': 28,  # Number of tasks per job (64 cpus per node)
+                  'queuetype': 'short', # queue type (short, normal, long, etc)
+                  'key': personal_alloc,  # personal allocation on quest
+                  'npar': 1,      # NPAR in INCAR
+                  'kpar': 4,      # KPAR in INCAR
                   'encut': 400,   # ENCUT in INCAR
+                  'isif': 3,      # ISIF in INCAR
                   'gga': 'PE'     # GGA in INCAR
         }
 

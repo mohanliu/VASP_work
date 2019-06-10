@@ -7,7 +7,7 @@
   LREAL = .FALSE.
   NSW = 100
   IBRION = 2
-  ISIF = 2
+  ISIF = {isif}
 
 #= Electronic Relxation Settings =#
   NELMIN = 5

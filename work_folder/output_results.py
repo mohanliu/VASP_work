@@ -10,6 +10,8 @@ import job_control as jc
 import re
 import numpy as np
 
+USER_name = 'mlc152'
+
 class Result(jc.DFTjob):
     def __init__(self, poscar):
         jc.DFTjob.__init__(self, poscar)
@@ -63,7 +65,7 @@ class Result(jc.DFTjob):
 
 if __name__ == "__main__":
     poscars = glob.glob('poscars/*')
-    os.system('squeue -u mervyn > current_running')
+    os.system('squeue -u '+USER_name+' > current_running')
 
     output = {}
     

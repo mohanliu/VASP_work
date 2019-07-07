@@ -1,0 +1,9 @@
+{
+    "kppra": 8000,  
+    "encut": 520,  
+    "npar": 1,    
+    "kpar": 4,   
+    "nodes": 1, 
+    "ntasks": 28,
+    "queuetype": "short",
+}

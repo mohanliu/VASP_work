@@ -14,6 +14,7 @@
   - `personal_alloc`: your personal allocation id
 - Prepare *`kwarg.json`* file accordingly (Default settings can be found [below](https://github.com/mohanliu/VASP_work/blob/master/README.md#default-kwargs-settings)) 
 - Set up jobs by `python job_control.py`
+  - Run this script in a `screen` or `tmux` session is highly recommanded. This script will automatically check whether the previous job is completed and submit the next job.
 - Collect your results into json file by `python output_results.py`
 
 ### DEFAULT *kwargs* Settings:

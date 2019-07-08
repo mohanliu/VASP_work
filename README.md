@@ -14,3 +14,33 @@
 - Prepare *`kwarg.json`* file accordingly (Default settings can be found below) 
 - Set up jobs by `python job_control.py`
 - Collect your results into json file by `python output_results.py`
+
+### DEFAULT *kwargs* Settings:
+- `kppra: 8000` 
+    - KPPRA for KPOINTS
+- `encut: 520`
+    - ENCUT in INCAR
+- `isif: 3`
+    - ISIF in INCAR
+- `npar: 1`
+    - NPAR in INCAR
+- `kpar: 4`
+    - KPAR in INCAR
+- `gga: 'PE'`
+    - GGA in INCAR
+- `user_kps: []`
+    - User defined KPONINTS
+- `ifsurf: False`
+    - modify KPOINTS if it is a surface slab
+- `nodes: 1`
+    - Number of nodes per job
+- `ntasks: 28`
+    - Number of tasks per job (number of nodes * 28/24/20)
+- `queuetype: 'short'`
+    - queue type (short, normal, long, etc)
+- `key: personal_alloc`
+    - personal allocation on quest
+- `walltime: '2:00:00'`
+    - walltime: '2:00:00' for relaxation, '0:30:00' for static 
+- `ifspin: 'auto'`
+    - whether spin polarization is considered ('auto', 'yes', 'no')

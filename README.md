@@ -2,6 +2,7 @@
 
 ## Major Updates:
 - Now support python 3.0+. **No longer** support python 2.7.
+- Only support job submission on Quest. Contact me if you need to run this on other servers.
 
 ## Setting up your jobs
 - Put POSCAR files into *`poscars/`* folder

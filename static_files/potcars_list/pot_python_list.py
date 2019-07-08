@@ -3,6 +3,7 @@
 import csv
 import os 
 import yaml
+import json
 
 elements = []
 potcars = []
@@ -19,3 +20,6 @@ pot_dict = dict((v,w) for v,w in zip(elements,potcars))
 
 with open('pot_dict.yml','w') as fout:
     yaml.dump(pot_dict, fout, default_flow_style = False)
+
+with open('pot_dict.json','w') as fout:
+    json.dump(pot_dict, fout, indent=4)

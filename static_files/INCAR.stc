@@ -1,12 +1,14 @@
 #= General Settings =#
   PREC = ACC
   ISTART = 0
+  {ispin}
+  {magmom}
 
 #= Ionic Relaxation Settings =#
   LREAL = .FALSE.
   NSW = 0
   IBRION = -1
-  ISIF = 2
+  ISIF = {isif}
 
 #= Electronic Relxation Settings =#
   NELM = 150

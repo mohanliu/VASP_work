@@ -10,6 +10,11 @@ import job_control as jc
 import re
 import numpy as np
 
+with open('user_info.json', 'r') as f:
+    info = json.load(f)
+
+USER_name = info['user_name']
+
 class Result(jc.DFTjob):
     def __init__(self, poscar):
         jc.DFTjob.__init__(self, poscar)
@@ -17,17 +22,17 @@ class Result(jc.DFTjob):
         self.check_result()
 
     def check_result(self):
-        print self.path
+        print(self.path)
         for c in self.conf_lst:
             cp = os.path.join(self.path, c)
             if not os.path.exists(cp):
                 return
             else:
                 os.chdir(cp)
-                out = subprocess.check_output([os.path.join(self.global_path, 'check_converge.sh'), os.path.join(self.global_path, 'current_running')])
+                out = subprocess.getoutput([os.path.join(self.global_path, 'check_converge.sh'), os.path.join(self.global_path, 'current_running')])
                 if "True" in out:
                     os.chdir(self.global_path)
-                    print "    ", c, " is converged"
+                    print("    ", c, " is converged")
                     self.result[ c ] = self.read_oszicar(cp)
                     if c == 'rlx2':
                         self.result[ 'A' ] = self.read_surf_area(cp)
@@ -63,7 +68,7 @@ class Result(jc.DFTjob):
 
 if __name__ == "__main__":
     poscars = glob.glob('poscars/*')
-    os.system('squeue -u mervyn > current_running')
+    os.system('squeue -u '+USER_name+' > current_running')
 
     output = {}
     

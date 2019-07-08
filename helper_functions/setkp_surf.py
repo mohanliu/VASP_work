@@ -21,7 +21,7 @@ class KPOINTS:
             try:
                 f = open('POSCAR', 'r') # default POSCAR/CONTCAR file
             except IOError:    
-                print "Need input file, either POSCAR or CONTCAR!!!"
+                print("Need input file, either POSCAR or CONTCAR!!!")
                 exit()
             else:
                 raw_in = sys.argv[1:]
@@ -29,9 +29,9 @@ class KPOINTS:
         f.close()
 
         try:
-            in_param = map(int,raw_in)
+            in_param = list(map(int,raw_in))
         except:
-            print "Check input format!!!"
+            print("Check input format!!!")
             exit()
 
         if len(in_param) == 2:
@@ -45,14 +45,14 @@ class KPOINTS:
             self.diff = 0
             self.kppra = in_param[0]
         else:
-            print "Too many inputs!!!"
+            print("Too many inputs!!!")
             exit()
 
         if self.kppra < 100:
-            print "Too small KPRRA (increase input or modify source code)"
+            print("Too small KPRRA (increase input or modify source code)")
             exit()
         elif abs(self.diff)**3 > self.kppra:
-            print "Dangerous amount of k-point shift"
+            print("Dangerous amount of k-point shift")
             exit()
 
         self.kps = [0,0,0] # Initial k-points 
@@ -77,7 +77,7 @@ class KPOINTS:
             fw.write('0 0 0\n')
             fw.close()
         else:
-            print "Non-positive k-point!! Refuse to write KPOINTS file!"
+            print("Non-positive k-point!! Refuse to write KPOINTS file!")
             exit()
 
     def get_kpoints(self,ifwrite='yes'):
@@ -99,7 +99,7 @@ class KPOINTS:
         x1 = [a21, a22, a23]
         x2 = [a31, a32, a33]
         
-        self.natom = sum(map(int,self.lat[6].split()))
+        self.natom = sum(list(map(int,self.lat[6].split())))
         # Number of atoms in POSCAR/CONTCAR
         
         l0 = np.linalg.norm(x0)
@@ -138,10 +138,10 @@ class KPOINTS:
         self.kps = kn
                  
         if (np.prod(np.array(kn))*self.natom) < self.kppra:
-            print "===== WARNING ====="
-            print "K-points generate method may not be appropriate!"
-            print "Check source code!!!!"
-            print "==================="
+            print("===== WARNING =====")
+            print("K-points generate method may not be appropriate!")
+            print("Check source code!!!!")
+            print("===================")
             exit()
 
         #if ifwrite == 'yes':

@@ -5,5 +5,5 @@
     "kpar": 4,   
     "nodes": 1, 
     "ntasks": 28,
-    "queuetype": "short",
+    "queuetype": "short"
 }

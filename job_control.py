@@ -126,7 +126,7 @@ class DFTjob(object):
             try: 
                 shutil.copyfile(os.path.join(p, 'POSCAR'),
                                 os.path.join(cp, 'POSCAR'))
-            except:
+            except Exception:
                 print("Not able to write POSCAR")
                 shutil.rmtree(cp)
                 return
@@ -137,7 +137,7 @@ class DFTjob(object):
             try:
                 shutil.copyfile(os.path.join(pp, 'CONTCAR'),
                                 os.path.join(cp, 'POSCAR'))
-            except:
+            except Exception:
                 print("Not able to write POSCAR")
                 shutil.rmtree(cp)
                 return
@@ -310,7 +310,7 @@ class DFTjob(object):
             for cf in cfs:
                 cpf = os.path.join(self.path, cf) # Conf path
                 shutil.rmtree(cpf) # Remove the files 
-        except:
+        except Exception:
             pass
 
     def hard_cleanup(self):

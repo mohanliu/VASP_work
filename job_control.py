@@ -85,10 +85,8 @@ class DFTjob(object):
                 return 0, c
             else:
                 os.chdir(cp)
-                out = subprocess.getoutput([os.path.join(self.global_path, 
-                                                         'check_converge.sh'),
-                                               os.path.join(self.global_path,
-                                                         'current_running')])
+                out = subprocess.check_output(['../../check_converge.sh','../../current_running']).decode("utf-8") 
+                
                 if "in queue" in out:
                     os.chdir(self.global_path)
                     return 1, c
@@ -122,14 +120,30 @@ class DFTjob(object):
         p = self.path
 
         # POSCAR setup
-        if self.conf_lst.index(conf) == 0:
-            try: 
-                shutil.copyfile(os.path.join(p, 'POSCAR'),
+        if self.conf_lst.index(conf) == 0: #if still on relax
+            if os.path.exists(os.path.join(self.path,conf+'_bk')): #if there is a backup file (if this is a restart)
+                backup_count = 2
+                while os.path.exists(os.path.join(self.path,conf+'_bk'+str(backup_count))): #finds most recent backup (higher # = more recent)
+                    backup_count += 1
+                if os.path.exists(os.path.join(self.path,conf+'_bk'+str(backup_count))): #checks if there even are multiple backups
+                    path_to_contcar = os.path.join(self.path,conf+'_bk'+str(backup_count))
+                else: path_to_contcar = os.path.join(self.path,conf+'_bk')
+                try:
+                    if os.stat(os.path.join(path_to_contcar,'CONTCAR')).st_size != 0:
+                        print('     Starting from previous CONTCAR...')
+                        shutil.copyfile(os.path.join(path_to_contcar,'CONTCAR'),os.path.join(cp,'POSCAR'))
+                    else:
+                        shutil.copyfile(os.path.join(p,'POSCAR'),os.path.join(cp,'POSCAR'))
+                except:
+                    shutil.copyfile(os.path.join(p,'POSCAR'),os.path.join(cp,'POSCAR'))
+            else: #if there is no backup file (brand new calculation) 
+                try: 
+                    shutil.copyfile(os.path.join(p, 'POSCAR'),
                                 os.path.join(cp, 'POSCAR'))
-            except Exception:
-                print("Not able to write POSCAR")
-                shutil.rmtree(cp)
-                return
+                except:
+                    print("Not able to write POSCAR")
+                    shutil.rmtree(cp)
+                    return
 
         else:
             index = self.conf_lst.index(conf) - 1
@@ -137,7 +151,7 @@ class DFTjob(object):
             try:
                 shutil.copyfile(os.path.join(pp, 'CONTCAR'),
                                 os.path.join(cp, 'POSCAR'))
-            except Exception:
+            except:
                 print("Not able to write POSCAR")
                 shutil.rmtree(cp)
                 return
@@ -192,18 +206,19 @@ class DFTjob(object):
         # job_script setup
         with open(self.global_path+'/static_files/auto.q', 'r') as f:
             text = f.read()
-
+        name = self.name
         queuetype = kwargs.get('queuetype', 'short')
-        nodes = kwargs.get('nodes', 1)
-        ntasks = kwargs.get('ntasks', 28)
+        nodes = kwargs.get('nodes', 4)
+        ntasks = kwargs.get('ntasks', 32)
         key = kwargs.get('key', personal_alloc)
         if 'rlx' in conf:
-            walltime = kwargs.get('walltime', '2:00:00')
+            walltime = kwargs.get('walltime', '4:00:00')
         elif 'stc' in conf:
-            walltime = kwargs.get('walltime', '0:30:00')
+            walltime = kwargs.get('walltime', '4:00:00')
 
         qfile = text.format(nodes=nodes, 
                             ntasks=ntasks,
+                            name=name,
                             queuetype=queuetype,
                             key=key,
                             walltime=walltime)
@@ -296,11 +311,18 @@ class DFTjob(object):
         cp_bk = os.path.join(self.path, conf+'_bk') # Conf path
 
         if os.path.exists(cp_bk):
-            return
-
-        print("    This will restart the calculation")
-
-        os.rename(cp, cp_bk) # Rename the conf_files
+            backup_count = 2
+            while os.path.exists(cp_bk+'_'+str(backup_count)):
+                backup_count += 1
+            
+            name = cp_bk+'_'+str(backup_count)
+            os.rename(cp,name)
+            print('Made new backup ' + str(name))
+            
+        else:
+            print("    This will restart the calculation")
+            os.rename(cp, cp_bk) # Rename the conf_files
+        
         self.create(conf, algo='Normal') # Recreate the calculation
 
         # Remove the future calculations
@@ -310,7 +332,7 @@ class DFTjob(object):
             for cf in cfs:
                 cpf = os.path.join(self.path, cf) # Conf path
                 shutil.rmtree(cpf) # Remove the files 
-        except Exception:
+        except:
             pass
 
     def hard_cleanup(self):
@@ -331,36 +353,37 @@ if __name__ == "__main__":
     else:
         print("No job will be submitted")
         submit_tag = False
-    print()
-
+        print()
+    print('All activity will be written to log.txt...')
     # Get kwargs from kwargs.json file
     with open('kwargs.json', 'r') as kj:
         kwargs = json.load(kj)
-    
-    for p in poscars:
-        # Create DFT task object
-        d = DFTjob(p, conf_lst=['rlx', 'rlx2', 'stc'])
+    with open('log.txt', 'w+') as f:
+        sys.stdout = f   
+        for p in poscars:
+            # Create DFT task object
+            d = DFTjob(p, conf_lst=['rlx', 'rlx2', 'stc'])
 
-        # Kwargs for this DFT task
-        """
-        DEFAULT Settings:
-            kppra: 8000                     # KPPRA for KPOINTS
-            encut: 520                      # ENCUT in INCAR
-            isif: 3                         # ISIF in INCAR
-            npar: 1                         # NPAR in INCAR
-            kpar: 4                         # KPAR in INCAR
-            gga: 'PE'                       # GGA in INCAR
-            user_kps: []                    # User defined KPONINTS
-            ifsurf: False                   # modify KPOINTS if it is a surface slab
-            nodes: 1                        # Number of nodes per job
-            ntasks: 28                      # Number of tasks per job (number of nodes * 28/24/20)
-            queuetype: 'short'              # queue type (short, normal, long, etc)
-            key: personal_alloc             # personal allocation on quest
-            walltime: '2:00:00'             # walltime: '2:00:00' for relaxation, '0:30:00' for static 
-            ifspin: 'auto'                  # whether spin polarization is considered ('auto', 'yes', 'no')
-        """
-        # Whether or not to submit the job right away
-        d.submit = submit_tag
+            # Kwargs for this DFT task
+            """
+            DEFAULT Settings:
+                kppra: 8000                     # KPPRA for KPOINTS
+                encut: 520                      # ENCUT in INCAR
+                isif: 3                         # ISIF in INCAR
+                npar: 1                         # NPAR in INCAR
+                kpar: 4                         # KPAR in INCAR
+                gga: 'PE'                       # GGA in INCAR
+                user_kps: []                    # User defined KPONINTS
+                ifsurf: False                   # modify KPOINTS if it is a surface slab
+                nodes: 1                        # Number of nodes per job
+                ntasks: 28                      # Number of tasks per job (number of nodes * 28/24/20)
+                queuetype: 'short'              # queue type (short, normal, long, etc)
+                key: personal_alloc             # personal allocation on quest
+                walltime: '2:00:00'             # walltime: '2:00:00' for relaxation, '0:30:00' for static 
+                ifspin: 'auto'                  # whether spin polarization is considered ('auto', 'yes', 'no')
+            """
+            # Whether or not to submit the job right away
+            d.submit = submit_tag
 
-        # Create input files 
-        d.setup(**kwargs)
+            # Create input files 
+            d.setup(**kwargs)

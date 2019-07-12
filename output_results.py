@@ -29,7 +29,7 @@ class Result(jc.DFTjob):
                 return
             else:
                 os.chdir(cp)
-                out = subprocess.getoutput([os.path.join(self.global_path, 'check_converge.sh'), os.path.join(self.global_path, 'current_running')])
+                out = subprocess.check_output(['../../check_converge.sh','../../current_running']).decode("utf-8") 
                 if "True" in out:
                     os.chdir(self.global_path)
                     print("    ", c, " is converged")
@@ -62,8 +62,8 @@ class Result(jc.DFTjob):
         
         with open(ct, 'r') as f:
             dat = f.readlines()[2:5]
-            a1 = np.array(map(float, dat[0].strip().split()))
-            a2 = np.array(map(float, dat[1].strip().split()))
+            a1 = list(map(float, dat[0].strip().split()))
+            a2 = list(map(float, dat[1].strip().split()))
             return np.linalg.norm(np.cross(a1, a2))
 
 if __name__ == "__main__":

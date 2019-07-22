@@ -123,10 +123,10 @@ class DFTjob(object):
         if self.conf_lst.index(conf) == 0: #if still on relax
             if os.path.exists(os.path.join(self.path,conf+'_bk')): #if there is a backup file (if this is a restart)
                 backup_count = 2
-                while os.path.exists(os.path.join(self.path,conf+'_bk'+str(backup_count))): #finds most recent backup (higher # = more recent)
+                while os.path.exists(os.path.join(self.path,conf+'_bk_'+str(backup_count))): #finds most recent backup (higher # = more recent)
                     backup_count += 1
-                if os.path.exists(os.path.join(self.path,conf+'_bk'+str(backup_count))): #checks if there even are multiple backups
-                    path_to_contcar = os.path.join(self.path,conf+'_bk'+str(backup_count))
+                if os.path.exists(os.path.join(self.path,conf+'_bk_'+str(backup_count-1))): #checks if there are multiple backups
+                    path_to_contcar = os.path.join(self.path,conf+'_bk_'+str(backup_count-1))
                 else: path_to_contcar = os.path.join(self.path,conf+'_bk')
                 try:
                     if os.stat(os.path.join(path_to_contcar,'CONTCAR')).st_size != 0:
@@ -207,13 +207,15 @@ class DFTjob(object):
         with open(self.global_path+'/static_files/auto.q', 'r') as f:
             text = f.read()
         name = self.name
-        queuetype = kwargs.get('queuetype', 'short')
+        #queuetype = kwargs.get('queuetype', 'short')
         nodes = kwargs.get('nodes', 4)
         ntasks = kwargs.get('ntasks', 32)
         key = kwargs.get('key', personal_alloc)
         if 'rlx' in conf:
-            walltime = kwargs.get('walltime', '4:00:00')
+            queuetype = kwargs.get('queuetype','Normal')
+            walltime = kwargs.get('walltime', '24:00:00')
         elif 'stc' in conf:
+            queuetype = kwargs.get('queuetype','short')
             walltime = kwargs.get('walltime', '4:00:00')
 
         qfile = text.format(nodes=nodes, 
@@ -315,6 +317,9 @@ class DFTjob(object):
             while os.path.exists(cp_bk+'_'+str(backup_count)):
                 backup_count += 1
             
+            if backup_count > 10:
+                print('THERE IS SOMETHING WRONG!!! ***')
+                return
             name = cp_bk+'_'+str(backup_count)
             os.rename(cp,name)
             print('Made new backup ' + str(name))
@@ -343,9 +348,9 @@ class DFTjob(object):
             shutil.rmtree(self.path) # Remove the files 
 
 if __name__ == "__main__":
-    poscars = glob.glob('poscars/*')
+    poscars = glob.glob('poscars/POSCAR*')
     os.system('squeue -u ' + USER_name + ' > current_running')
-
+    submit_tag = True
     ans = input("Submit jobs? <YES> or others:")
     if ans == 'YES':
         print("Let's submit all jobs!")
@@ -360,7 +365,10 @@ if __name__ == "__main__":
         kwargs = json.load(kj)
     with open('log.txt', 'w+') as f:
         sys.stdout = f   
+        #counter = 0
         for p in poscars:
+            #if counter == 2: break
+            #counter +=1
             # Create DFT task object
             d = DFTjob(p, conf_lst=['rlx', 'rlx2', 'stc'])
 

@@ -20,7 +20,7 @@ class Result(jc.DFTjob):
         jc.DFTjob.__init__(self, poscar)
         self.result = {}
         self.check_result()
-
+        self.completed = 0
     def check_result(self):
         print(self.path)
         for c in self.conf_lst:
@@ -29,7 +29,7 @@ class Result(jc.DFTjob):
                 return
             else:
                 os.chdir(cp)
-                out = subprocess.getoutput([os.path.join(self.global_path, 'check_converge.sh'), os.path.join(self.global_path, 'current_running')])
+                out = subprocess.check_output(['../../check_converge.sh','../../current_running']).decode("utf-8") 
                 if "True" in out:
                     os.chdir(self.global_path)
                     print("    ", c, " is converged")
@@ -62,20 +62,28 @@ class Result(jc.DFTjob):
         
         with open(ct, 'r') as f:
             dat = f.readlines()[2:5]
-            a1 = np.array(map(float, dat[0].strip().split()))
-            a2 = np.array(map(float, dat[1].strip().split()))
+            a1 = list(map(float, dat[0].strip().split()))
+            a2 = list(map(float, dat[1].strip().split()))
             return np.linalg.norm(np.cross(a1, a2))
 
 if __name__ == "__main__":
     poscars = glob.glob('poscars/*')
     os.system('squeue -u '+USER_name+' > current_running')
-
+    completed = 0
     output = {}
     
     for p in poscars:
         name = '_'.join(p.split('/')[1].split('_')[1:])
         d = Result(p)
         output[ name ] = d.result
-
+        if len(output[ name ]) == 4: 
+            completed += 1
+            sub_dirs = glob.glob(f'{name}/*')
+            for sub_dir in sub_dirs:
+                if sub_dir not in [f'{name}/rlx',f'{name}/rlx2',f'{name}/stc',f'{name}/POSCAR']: 
+                    shutil.rmtree(sub_dir)
+                    print(f'    Removed {sub_dir}')
     with open(os.path.basename(os.getcwd())+'_result.json', 'w') as f:
         json.dump(output, f, indent=4, ensure_ascii = False)
+
+    print('\n'+str(completed)+' finished.')

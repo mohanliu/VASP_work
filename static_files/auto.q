@@ -7,8 +7,6 @@
 #SBATCH -t {walltime}
 #SBATCH -A {key}
 #SBATCH -o job.oe
-#SBATCH --mail-type=END
-#SBATCH --mail-user=andrewlee1030quest@gmail.com
 
 #OpenMP settings:
 export OMP_NUM_THREADS=1

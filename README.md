@@ -6,6 +6,7 @@
 
 ## Setting up your jobs
 - Put POSCAR files into *`poscars/`* folder
+    -Must be in format POSCAR\_\*
 - Download POTCAR files into a folder
 - Make **check_converge.sh** executable by `chmod +x check_converge.sh`
 - Prepare *`user_info.json`* file:

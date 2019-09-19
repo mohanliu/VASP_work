@@ -43,7 +43,7 @@
     - queue type (short, normal, long, etc)
 - `key: personal_alloc`
     - personal allocation on quest
-- `walltime: '2:00:00'`
-    - walltime: '2:00:00' for relaxation, '0:30:00' for static 
+- `walltime: '24:00:00'`
+    - walltime: '24:00:00' for relaxation, '4:00:00' for static 
 - `ifspin: 'auto'`
     - whether spin polarization is considered ('auto', 'yes', 'no')

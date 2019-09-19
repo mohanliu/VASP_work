@@ -6,6 +6,7 @@
 
 ## Setting up your jobs
 - Put POSCAR files into *`poscars/`* folder
+    -Must be in format POSCAR\_\*
 - Download POTCAR files into a folder
 - Make **check_converge.sh** executable by `chmod +x check_converge.sh`
 - Prepare *`user_info.json`* file:
@@ -42,7 +43,7 @@
     - queue type (short, normal, long, etc)
 - `key: personal_alloc`
     - personal allocation on quest
-- `walltime: '2:00:00'`
-    - walltime: '2:00:00' for relaxation, '0:30:00' for static 
+- `walltime: '24:00:00'`
+    - walltime: '24:00:00' for relaxation, '4:00:00' for static 
 - `ifspin: 'auto'`
     - whether spin polarization is considered ('auto', 'yes', 'no')

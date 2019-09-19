@@ -120,12 +120,12 @@ class DFTjob(object):
         p = self.path
 
         # POSCAR setup
-        if self.conf_lst.index(conf) == 0: #if still on relax
-            if os.path.exists(os.path.join(self.path,conf+'_bk')): #if there is a backup file (if this is a restart)
+        if self.conf_lst.index(conf) == 0: # if still on relax
+            if os.path.exists(os.path.join(self.path,conf+'_bk')): # if there is a backup file (if this is a restart)
                 backup_count = 2
-                while os.path.exists(os.path.join(self.path,conf+'_bk_'+str(backup_count))): #finds most recent backup (higher # = more recent)
+                while os.path.exists(os.path.join(self.path,conf+'_bk_'+str(backup_count))): # finds most recent backup (higher # = more recent)
                     backup_count += 1
-                if os.path.exists(os.path.join(self.path,conf+'_bk_'+str(backup_count-1))): #checks if there are multiple backups
+                if os.path.exists(os.path.join(self.path,conf+'_bk_'+str(backup_count-1))): # checks if there are multiple backups
                     path_to_contcar = os.path.join(self.path,conf+'_bk_'+str(backup_count-1))
                 else: path_to_contcar = os.path.join(self.path,conf+'_bk')
                 try:
@@ -207,7 +207,6 @@ class DFTjob(object):
         with open(self.global_path+'/static_files/auto.q', 'r') as f:
             text = f.read()
         name = self.name
-        #queuetype = kwargs.get('queuetype', 'short')
         nodes = kwargs.get('nodes', 4)
         ntasks = kwargs.get('ntasks', 32)
         key = kwargs.get('key', personal_alloc)
@@ -365,11 +364,8 @@ if __name__ == "__main__":
         kwargs = json.load(kj)
     with open('log.txt', 'w+') as f:
         sys.stdout = f   
-        #counter = 0
         for p in poscars:
-            #if counter == 2: break
-            #counter +=1
-            # Create DFT task object
+            # Create DFT task object, conf list can include as many rlx steps as desired
             d = DFTjob(p, conf_lst=['rlx', 'rlx2', 'stc'])
 
             # Kwargs for this DFT task
